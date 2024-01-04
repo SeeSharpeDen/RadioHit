@@ -1,0 +1,6 @@
+{
+    "clientId": "",
+    "token": "",
+    "RadioMP3url": "https://cast.wingless.cc/listen/winglessradio/radio.mp3",
+    "RadioAPIurl": "https://cast.wingless.cc/api/live/nowplaying/winglessradio"
+}
