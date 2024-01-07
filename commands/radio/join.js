@@ -1,5 +1,7 @@
-const { SlashCommandBuilder, ChannelType } = require('discord.js');
-const { joinVoiceChannel } = require('@discordjs/voice');
+const { SlashCommandBuilder } = require('discord.js');
+const { joinVoiceChannel, createAudioResource, createAudioPlayer } = require('@discordjs/voice');
+const libsodium = require('libsodium-wrappers');
+const config = require('../../config.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -7,6 +9,9 @@ module.exports = {
     .setDescription('Joins the user\'s voice channel.'),
 
   async execute(interaction) {
+    // Initialize libsodium
+    await libsodium.ready;
+
     const logData = {
       guildId: interaction.guild?.id,
       channelId: interaction.channel?.id,
@@ -26,7 +31,6 @@ module.exports = {
     console.log('Selected Channel:', channel);
 
     if (!channel) {
-
       const embed = {
         color: 0xff0000, // Red color for error
         title: interaction.client.user.username,
@@ -49,12 +53,24 @@ module.exports = {
       return interaction.reply({ embeds: [embed] });
     }
 
+    // make the bot join voice
     try {
       const connection = joinVoiceChannel({
         channelId: channel.id,
         guildId: channel.guild.id,
         adapterCreator: channel.guild.voiceAdapterCreator,
+        selfDeaf: false, // undeafened
       });
+
+      // radio audio link from config
+      const resource = createAudioResource(config.RadioMP3url, {
+        inlineVolume: true,
+      });
+
+      // radio audio player
+      const player = createAudioPlayer();
+      connection.subscribe(player);
+      player.play(resource);
 
       const embed = {
         color: 0x00ff00, // Green color for success
@@ -66,7 +82,7 @@ module.exports = {
           },
           {
             name: 'Voice Channel',
-            value: 'Successfully joined '+ channel.name,
+            value: 'Successfully joined ' + channel.name,
           },
         ],
         footer: {
